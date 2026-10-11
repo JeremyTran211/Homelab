@@ -1,0 +1,26 @@
+# Secrets: real values live only on the host, never in git
+.env
+*.pem
+*.key
+auth.json
+
+# Python
+.venv/
+venv/
+tutorbot-env/
+__pycache__/
+*.pyc
+
+# Runtime data (logs and screenshots are shipped to S3)
+logs/
+screenshots/
+*.log
+*.log.old
+*.png
+*.db
+*.sqlite
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store

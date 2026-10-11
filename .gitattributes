@@ -1,0 +1,4 @@
+# Keep LF line endings so scripts run on the Pi even when edited on Windows
+* text=auto eol=lf
+*.png binary
+*.jpg binary
