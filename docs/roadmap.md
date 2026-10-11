@@ -16,6 +16,8 @@ the commit history shows when each piece shipped.
 - [ ] Set up `/srv/homelab` and `/srv/apps/` on the Pi and switch cron over ([runbook](runbooks/pi-migration.md))
 - [ ] Collaborator access: GitHub collaborator + branch protection on `main` (PR review required),
       a separate Linux user on the Pi, a separate IAM user in AWS (no shared logins)
+- [ ] Pi permissions: `homelab` group for `/srv/homelab`; app folders stay owner-only.
+      Decide who joins the `docker` group (anyone in it can effectively act as root on the Pi)
 
 ## Phase 1: Dashboard
 

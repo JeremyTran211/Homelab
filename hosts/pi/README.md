@@ -14,6 +14,10 @@
 /srv/apps/<app-name>       ← one clone per app repo, e.g. /srv/apps/scheduler-tdc
 ```
 
+**Who owns what:** `/srv/homelab` is shared by everyone working on the infrastructure
+(planned: a `homelab` group). Each app folder belongs to the app's owner only, because it
+holds that app's `.env`. Infra collaborators don't need access to app folders.
+
 One-time setup for these folders:
 
 ```bash

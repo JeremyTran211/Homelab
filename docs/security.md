@@ -48,6 +48,11 @@ hybrid activation (roadmap phase 2).
 
 Each collaborator gets their **own** GitHub account, Linux user on the Pi, and IAM user in AWS.
 Logins are never shared, so access can be removed per person and actions are traceable.
+
+On the Pi, `/srv/homelab` is shared by the infra collaborators, and each app folder under
+`/srv/apps/` belongs only to the app's owner, since it holds that app's secrets. Note that anyone in
+the `docker` group can effectively act as root, so folder permissions don't fully separate people
+who can run Docker. Separate AWS and GitHub logins are the real boundary.
 The details are still to be decided (roadmap phase 0).
 
 ## Remote access
