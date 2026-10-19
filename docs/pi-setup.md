@@ -27,15 +27,6 @@ git clone https://github.com/JeremyTran211/Homelab.git /srv/homelab
 git clone https://github.com/JeremyTran211/Scheduler_TDC.git /srv/apps/scheduler-tdc
 ```
 
-## 2. Scheduler
-
-```bash
-cd /srv/apps/scheduler-tdc
-cp .env.example .env && nano .env    # or copy from ~/Project/Scheduler_TDC/.env and add S3_BUCKET
-chmod 600 .env
-docker compose build
-```
-
 Safe checks (none of these book hours):
 
 ```bash
@@ -45,7 +36,7 @@ DRY_RUN=1 ./run.sh && tail -2 logs/cron-$(date +%F).log           # ✅ "S3_BUCK
 aws sts get-caller-identity                                        # ✅ user/scheduler-tdc-uploader
 ```
 
-## 3. Monitoring
+## 2. Monitoring
 
 ```bash
 cd /srv/homelab/platform/monitoring
@@ -54,7 +45,7 @@ cp ~/Project/Scheduler_TDC/health/metrics.db .     # only when moving from the o
 .venv/bin/python metrics.py && .venv/bin/python health_check.py   # ✅ "Status: OK"
 ```
 
-## 4. Cron
+## 3. Cron
 
 Do this any day except Wednesday morning.
 
@@ -63,16 +54,6 @@ crontab -l > ~/crontab.backup             # rollback: crontab ~/crontab.backup
 crontab /srv/homelab/hosts/pi/crontab
 crontab -l
 ```
-
-## 5. After the first Wednesday
-
-```bash
-tail -30 /srv/apps/scheduler-tdc/logs/cron-<date>.log   # ✅ "Verified scheduled" and "Bot exit code: 0"
-aws s3 ls s3://<bucket>/<date>/ --recursive             # ✅ log + screenshots
-```
-
-Exit code `2` means some hours weren't booked: check `screenshots/<date>/verification_mismatch.png`.
-Once a couple of Wednesdays look good: `mv ~/Project/Scheduler_TDC ~/Project/Scheduler_TDC.old`.
 
 ## Troubleshooting
 
