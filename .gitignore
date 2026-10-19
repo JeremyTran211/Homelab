@@ -7,7 +7,6 @@ auth.json
 # Python
 .venv/
 venv/
-tutorbot-env/
 __pycache__/
 *.pyc
 

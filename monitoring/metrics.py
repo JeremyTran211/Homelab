@@ -5,7 +5,7 @@ a snapshot in a local SQLite database (metrics.db).
 Run manually:
     python3 metrics.py
 
-Run on a schedule (Pi host, not in Docker): see hosts/pi/crontab
+Run on a schedule (Pi host, not in Docker): see pi.crontab
 """
 
 import os
