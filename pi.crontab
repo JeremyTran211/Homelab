@@ -1,0 +1,17 @@
+# Crontab for chocochip (Raspberry Pi). Install with:
+#   crontab /srv/homelab/pi.crontab
+# Check what's live with: crontab -l
+# Times are the Pi's local time (America/Los_Angeles).
+
+# cron's default PATH is just /usr/bin:/bin; the AWS CLI installer puts aws in /usr/local/bin
+PATH=/usr/local/bin:/usr/bin:/bin
+
+# --- Platform ---
+
+# Health metrics every 5 minutes -> /srv/homelab/monitoring/metrics.db
+*/5 * * * * cd /srv/homelab/monitoring && .venv/bin/python metrics.py >> metrics.log 2>&1
+
+# --- Apps (each is its own repo, cloned to /srv/apps/<app>) ---
+
+# Every Wednesday at 9:01am
+1 9 * * 3 /srv/apps/scheduler-tdc/run.sh

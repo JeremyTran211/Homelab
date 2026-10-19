@@ -1,11 +1,11 @@
 # CLAUDE.md
 
 Infrastructure for a hybrid on-prem + AWS homelab, running on a Raspberry Pi (`chocochip`).
-Apps live in their own repos (e.g. Scheduler_TDC). App code doesn't belong here.
+Apps live in their own repos; app code and app docs don't belong here.
 Two people work on this and both are learning: explain changes in plain terms, and give exact
 commands for anything that has to be done by hand on the Pi or in the AWS console.
 
-The repo is public.
+The repo is public. On the Pi it's cloned to `/srv/homelab`; apps go in `/srv/apps/<app>`.
 
 ## Rules
 
@@ -13,13 +13,15 @@ The repo is public.
   Use placeholders like `YOUR_BUCKET_NAME`.
 - Work on a branch and open a PR. Never push to `main`.
 - Small steps, each one explained. Changes get approved one at a time.
-- Keep docs lean: update `README.md`, `ROADMAP.md` or `docs/pi-setup.md` rather than adding new doc files.
-- `hosts/pi/crontab` is the source of truth for the Pi's cron. Editing it doesn't change the Pi;
-  it's installed by hand with `crontab /srv/homelab/hosts/pi/crontab`.
+- Keep it flat and lean: add a folder only when a second related file arrives, and update
+  `README.md`, `ROADMAP.md` or `pi-setup.md` rather than adding new doc files.
+- `pi.crontab` is the source of truth for the Pi's cron. Editing it doesn't change the Pi;
+  it's installed by hand with `crontab /srv/homelab/pi.crontab`.
 
 ## Careful
 
-- Scheduler_TDC books real Tutor.com hours. Never run it for real to test; use `DRY_RUN=1 ./run.sh`.
+- Apps on the Pi can act on the real world. Never run an app's real job to test infrastructure;
+  use the app's dry-run mode.
 - The Pi is ARM64: anything in Docker must work on `linux/arm64`.
 - Nothing on the home network gets exposed directly to the internet.
 
