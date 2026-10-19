@@ -8,12 +8,12 @@ the commit history shows when each piece shipped.
 - [x] Raspberry Pi running Docker and cron
 - [x] First app hosted: Scheduler_TDC (weekly bot, logs and screenshots shipped to S3)
 - [x] Pi health metrics (CPU, RAM, disk, temp) every 5 minutes into SQLite, plus a health check
-- [x] Dedicated, bucket-scoped IAM user for the Pi ([security.md](security.md))
-- [x] Infra and apps split into separate repos ([hosting-an-app.md](hosting-an-app.md))
+- [x] Dedicated, bucket-scoped IAM user for the Pi
+- [x] Infra and apps split into separate repos
 
 ## Phase 0: Clean start
 
-- [ ] Set up `/srv/homelab` and `/srv/apps/` on the Pi and switch cron over ([runbook](runbooks/pi-migration.md))
+- [ ] Set up `/srv/homelab` and `/srv/apps/` on the Pi and switch cron over ([docs/pi-setup.md](docs/pi-setup.md))
 - [ ] Collaborator access: GitHub collaborator + branch protection on `main` (PR review required),
       a separate Linux user on the Pi, a separate IAM user in AWS (no shared logins)
 - [ ] Pi permissions: `homelab` group for `/srv/homelab`; app folders stay owner-only.

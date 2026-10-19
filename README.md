@@ -1,47 +1,57 @@
 # Homelab
 
-A hybrid on-prem + AWS homelab. It provides the infrastructure that apps and sites
-run on: the machines, shared services, scheduling, monitoring, and the AWS pieces that
-connect it all to the internet. It's built to learn Docker, Linux, automation and AWS, together.
-
-This repo holds **infrastructure only**. Each app or site lives in its own repo and is
-deployed onto the lab as described in [docs/hosting-an-app.md](docs/hosting-an-app.md).
-
-## Hosts
-
-| Host | Role | Status |
-|---|---|---|
-| [chocochip](hosts/pi/) (Raspberry Pi) | Runs everything today | Live |
-| [nuc12](hosts/nuc12/) (Intel NUC12) | Heavier services and sites | Planned |
+Infrastructure for a hybrid on-prem + AWS homelab: the machines, shared services and AWS setup
+that apps run on. Apps and sites live in their own repos; this one decides where and when they run.
 
 ## What's running
 
-| Service | Kind | Where | Repo |
-|---|---|---|---|
-| Health monitoring | Platform | Pi, cron every 5 min | [platform/monitoring](platform/monitoring/) |
-| Scheduler_TDC | App | Pi, Docker, cron every Wednesday | [JeremyTran211/Scheduler_TDC](https://github.com/JeremyTran211/Scheduler_TDC) |
-| S3 + IAM | Cloud | AWS us-east-1 | [cloud/aws](cloud/aws/) |
+| What | Where | Source |
+|---|---|---|
+| Health monitoring (CPU, RAM, disk, temp → SQLite every 5 min) | Pi, cron | [`platform/monitoring/`](platform/monitoring/) |
+| Scheduler_TDC (weekly booking bot) | Pi, Docker, cron every Wednesday | [Scheduler_TDC repo](https://github.com/JeremyTran211/Scheduler_TDC) |
+| S3 bucket + scoped IAM user for the bot's logs | AWS us-east-1 | [`cloud/aws/iam/`](cloud/aws/iam/) |
 
-## Repo layout
+Hosts: **chocochip** (Raspberry Pi, live). An Intel NUC12 is planned.
+
+## How it fits together
+
+```mermaid
+flowchart LR
+    subgraph pi["chocochip (Raspberry Pi)"]
+        cron["cron<br/>(hosts/pi/crontab)"]
+        bot["/srv/apps/scheduler-tdc<br/>Docker"]
+        metrics["platform/monitoring<br/>metrics.db"]
+    end
+    s3[("AWS S3<br/>logs + screenshots")]
+
+    cron -->|"Wed 9:01"| bot
+    cron -->|"every 5 min"| metrics
+    bot -->|"upload via scoped IAM user"| s3
+```
+
+On the Pi, this repo is cloned to `/srv/homelab` and each app to `/srv/apps/<app>`.
+The work runs at home; AWS handles what home can't do well: off-site storage today, and
+later monitoring, alerts and a public entry point for hosted sites (see [ROADMAP.md](ROADMAP.md)).
+
+## Layout
 
 ```
-hosts/       per-machine config: crontab, folder layout, setup notes
-platform/    shared services: monitoring, and later a reverse proxy, database, dashboards
-cloud/aws/   AWS resources and IAM policies
-docs/        architecture, roadmap, security, setup log, runbooks
+hosts/pi/crontab      the Pi's cron jobs (install with: crontab /srv/homelab/hosts/pi/crontab)
+platform/monitoring/  health metrics scripts
+cloud/aws/iam/        IAM policy templates
+docs/pi-setup.md      setting up or rebuilding the Pi
+ROADMAP.md            what's next
 ```
 
 ## Rules
 
-- Secrets never go in git. Real `.env` files and keys live only on the hosts.
-- Changes go through a branch and a pull request, so the other person can review.
-- Anything changed by hand on a host gets a line in [docs/setup-log.md](docs/setup-log.md).
+- **No secrets in git.** `.env` files and AWS keys live only on the host. Policies use placeholders like `YOUR_BUCKET_NAME`.
+- **Changes go through a branch and a PR** so the other person can review.
+- **One login per person** for the Pi, AWS and GitHub. No shared accounts.
+- **Nothing exposed directly to the internet** from the home network.
 
-## Docs
+## Adding an app
 
-- [Architecture](docs/architecture.md): how the pieces connect
-- [Hosting an app](docs/hosting-an-app.md): how an app repo gets deployed onto the lab
-- [Roadmap](docs/roadmap.md): what's done and what's next
-- [Security](docs/security.md): secrets and AWS access
-- [Setup log](docs/setup-log.md): dated journal of changes
-- [Runbook: set up the Pi from these repos](docs/runbooks/pi-migration.md)
+An app repo needs a `Dockerfile`, a `.env.example`, and must run on ARM64. To host it:
+clone it to `/srv/apps/<app>`, create its `.env`, and open a PR here adding its cron line
+(or service) and any IAM policy it needs.
