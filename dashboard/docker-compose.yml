@@ -1,0 +1,15 @@
+services:
+  dashboard:
+    build:
+      context: ..                    # repo root, so the image can include monitoring/health_check.py
+      dockerfile: dashboard/Dockerfile
+    image: homelab-dashboard:latest
+    ports:
+      - "8000:8000"                  # http://chocochip:8000 on the home network / Tailscale only
+    volumes:
+      - ../monitoring:/data:ro       # metrics.db (folder, so SQLite can see its journal file)
+      - /srv/status:/status:ro       # <app>.json files written by each app
+    environment:
+      METRICS_DB: /data/metrics.db
+      STATUS_DIR: /status
+    restart: unless-stopped

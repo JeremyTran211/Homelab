@@ -1,0 +1,7 @@
+# Keep the Docker build context small and free of runtime data
+.git
+**/.venv
+**/__pycache__
+**/*.db
+**/*.log
+**/.env

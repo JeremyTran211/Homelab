@@ -21,7 +21,7 @@ the commit history shows when each piece shipped.
 
 ## Phase 1: Dashboard
 
-- [ ] FastAPI app showing system health (from metrics.db) and app status (last run, exit code)
+- [x] FastAPI app showing system health (from metrics.db) and app status (last run, exit code)
 - [ ] Run it in Docker on the Pi
 
 ## Phase 2: Cloud observability (hybrid)
