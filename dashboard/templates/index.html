@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="refresh" content="60">
+  <title>Homelab</title>
+  <style>
+    :root { --bg: #f6f7f9; --card: #fff; --text: #1d2228; --muted: #69727d; --ok: #1f8a4c; --bad: #c2352b; --warn: #b7791f; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg: #15181c; --card: #1f2329; --text: #e6e8eb; --muted: #9aa3ad; --ok: #3ccf7a; --bad: #ff6b5e; --warn: #f0b44c; }
+    }
+    body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--text);
+           font: 15px/1.5 system-ui, -apple-system, Segoe UI, sans-serif; }
+    main { max-width: 760px; margin: 0 auto; }
+    h1 { font-size: 22px; margin: 0 0 4px; }
+    h2 { font-size: 16px; margin: 0 0 12px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    a { color: inherit; }
+    td:first-child { white-space: nowrap; }
+    .card { background: var(--card); border-radius: 10px; padding: 16px; margin-top: 16px; }
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .stat b { display: block; font-size: 24px; }
+    .pill { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #fff; }
+    .OK, .ok { background: var(--ok); }
+    .WARNING, .STALE, .bad { background: var(--bad); }
+    .NO.DATA { background: var(--warn); }
+    ul { margin: 12px 0 0; padding-left: 20px; }
+    table { width: 100%; border-collapse: collapse; }
+    td, th { text-align: left; padding: 6px 4px; border-top: 1px solid color-mix(in srgb, var(--muted) 25%, transparent); }
+    th { color: var(--muted); font-weight: 500; font-size: 13px; border-top: none; }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Homelab</h1>
+  <div class="muted">chocochip · refreshes every minute · <a href="/docs">API</a></div>
+
+  <section class="card">
+    <h2>Pi health <span class="pill {{ health.status }}">{{ health.status }}</span></h2>
+    {% if health.reading %}
+      <div class="stats">
+        <div class="stat">CPU<b>{{ "%.1f"|format(health.reading.cpu_percent) }}%</b></div>
+        <div class="stat">Memory<b>{{ "%.1f"|format(health.reading.mem_percent) }}%</b></div>
+        <div class="stat">Disk<b>{{ "%.1f"|format(health.reading.disk_percent) }}%</b></div>
+        <div class="stat">Temp<b>{% if health.reading.temp_c is not none %}{{ "%.1f"|format(health.reading.temp_c) }}°C{% else %}N/A{% endif %}</b></div>
+      </div>
+      <div class="muted" style="margin-top:8px">Last reading {{ health.ago }}</div>
+    {% endif %}
+    {% if health.warnings %}
+      <ul>{% for w in health.warnings %}<li>{{ w }}</li>{% endfor %}</ul>
+    {% endif %}
+  </section>
+
+  <section class="card">
+    <h2>Apps</h2>
+    {% if apps %}
+      <table>
+        <tr><th>App</th><th>Last run</th><th>Exit code</th><th>S3 upload</th><th></th></tr>
+        {% for a in apps %}
+          <tr>
+            <td>{{ a.app }}</td>
+            <td>{{ a.ago or a.error or "unknown" }}</td>
+            <td>{{ a.exit_code if a.exit_code is defined else "?" }}</td>
+            <td>{{ a.s3_upload or "-" }}</td>
+            <td><span class="pill {{ 'ok' if a.ok else 'bad' }}">{{ "OK" if a.ok else "FAILED" }}</span></td>
+          </tr>
+        {% endfor %}
+      </table>
+    {% else %}
+      <div class="muted">No apps have reported yet. Each app writes /srv/status/&lt;app&gt;.json after it runs.</div>
+    {% endif %}
+  </section>
+</main>
+</body>
+</html>
