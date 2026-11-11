@@ -16,11 +16,13 @@ flowchart LR
         dash["dashboard<br/>FastAPI in Docker"]
     end
     aws[("AWS<br/>S3, IAM")]
+    discord["Discord"]
 
     cron -->|"every 5 min"| mon
     cron -->|"on each app's schedule,<br/>recording each run"| apps
     apps -->|"run results"| mon
     mon -->|"read-only"| dash
+    mon -->|"problems, every 15 min"| discord
     apps -->|"scoped IAM user per app"| aws
 ```
 
@@ -31,7 +33,8 @@ monitoring, alerts and a public entry point for hosted sites (see [ROADMAP.md](R
 
 ```
 pi.crontab        the Pi's cron jobs: monitoring + each app's schedule
-monitoring/       health metrics (CPU, RAM, disk, temp) into SQLite every 5 min, plus run_app.py to record app runs
+monitoring/       health metrics (CPU, RAM, disk, temp) into SQLite every 5 min, run_app.py to record app runs, alerts.py to report problems
+.env.example      template for /srv/homelab/.env on the Pi (secrets stay off git)
 dashboard/        web page showing Pi health and each app's last run (FastAPI in Docker)
 aws/              IAM policy templates
 pi-setup.md       setting up or rebuilding the Pi

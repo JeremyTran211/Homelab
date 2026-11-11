@@ -11,6 +11,9 @@ PATH=/usr/local/bin:/usr/bin:/bin
 # Health metrics every 5 minutes -> /srv/homelab/monitoring/metrics.db
 */5 * * * * cd /srv/homelab/monitoring && .venv/bin/python metrics.py >> metrics.log 2>&1
 
+# Alerts every 15 minutes -> Discord.
+*/15 * * * * cd /srv/homelab/monitoring && python3 alerts.py >> alerts.log 2>&1
+
 # --- Apps (each is its own repo, cloned to /srv/apps/<app>) ---
 
 # run_app.py records each run's times and exit code in metrics.db for the dashboard.

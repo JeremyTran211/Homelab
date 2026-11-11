@@ -75,6 +75,33 @@ curl -s localhost:8000/api/apps           # ✅ [] until the first app runs thro
 Then open `http://chocochip.local:8000` from a device on the home network (or use the address from
 `hostname -I`). Never add a router port forward for it: the dashboard has no login.
 
+## 5. Alerts
+
+Messages you on Discord when the Pi or one of its apps has a problem. Create the webhook first:
+Discord → Server Settings → Integrations → Webhooks → New Webhook → Copy Webhook URL.
+
+```bash
+cd /srv/homelab
+cp .env.example .env
+nano .env                                 # paste the URL after DISCORD_WEBHOOK_URL=
+chmod 600 .env                            # it's a password: anyone with it can post
+cd monitoring
+python3 alerts.py --dry-run               # ✅ lists what it would send, sends nothing
+python3 alerts.py                         # ✅ "Nothing to report." when all is well
+```
+
+Confirm messages actually arrive by pointing it at an empty database, which looks to it
+like metrics have never been recorded:
+
+```bash
+python3 -c "import sqlite3; sqlite3.connect('/tmp/alert-test.db').close()"
+METRICS_DB=/tmp/alert-test.db python3 alerts.py    # ✅ a message appears in Discord
+```
+
+Each problem is reported once, repeated daily while it lasts, and followed by a short
+note when it clears. Thresholds live in `health_check.py`; per-app rules are the `APPS`
+block at the top of `alerts.py`, including which exit codes count as normal.
+
 ## Updating
 
 ```bash
