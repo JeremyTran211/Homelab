@@ -207,7 +207,16 @@ def read_webhook_url():
 
 def send(webhook_url, content):
     body = json.dumps({"content": content}).encode()
-    request = urllib.request.Request(webhook_url, data=body, headers={"Content-Type": "application/json"})
+    request = urllib.request.Request(
+        webhook_url,
+        data=body,
+        headers={
+            "Content-Type": "application/json",
+            # Discord is behind Cloudflare, which answers 403 to urllib's default
+            # "Python-urllib/3.x" name. Any ordinary name gets through.
+            "User-Agent": "homelab-alerts/1.0",
+        },
+    )
     with urllib.request.urlopen(request, timeout=15) as response:
         return response.status
 
@@ -248,10 +257,16 @@ def main():
         if dry_run:
             print(f"WOULD SEND: {content}")
             continue
+        # On any failure, leave this alert's state alone so the next run tries again
         try:
             send(webhook_url, content)
+        except urllib.error.HTTPError as e:
+            # Discord explains refusals in the response body; print it or we're guessing
+            detail = e.read().decode("utf-8", "replace").strip()
+            print(f"alerts: could not send {key}: HTTP {e.code} {e.reason} {detail[:300]}", file=sys.stderr)
+            failures += 1
+            continue
         except (urllib.error.URLError, OSError) as e:
-            # Leave this alert's state alone so the next run tries again
             print(f"alerts: could not send {key}: {e}", file=sys.stderr)
             failures += 1
             continue
