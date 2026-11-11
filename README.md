@@ -13,11 +13,14 @@ flowchart LR
         cron["cron<br/>(pi.crontab)"]
         mon["/srv/homelab/monitoring<br/>metrics.db"]
         apps["/srv/apps/&lt;app&gt;<br/>Docker"]
+        dash["dashboard<br/>FastAPI in Docker"]
     end
     aws[("AWS<br/>S3, IAM")]
 
     cron -->|"every 5 min"| mon
-    cron -->|"on each app's schedule"| apps
+    cron -->|"on each app's schedule,<br/>recording each run"| apps
+    apps -->|"run results"| mon
+    mon -->|"read-only"| dash
     apps -->|"scoped IAM user per app"| aws
 ```
 
@@ -28,7 +31,8 @@ monitoring, alerts and a public entry point for hosted sites (see [ROADMAP.md](R
 
 ```
 pi.crontab        the Pi's cron jobs: monitoring + each app's schedule
-monitoring/       health metrics (CPU, RAM, disk, temp) into SQLite every 5 min
+monitoring/       health metrics (CPU, RAM, disk, temp) into SQLite every 5 min, plus run_app.py to record app runs
+dashboard/        web page showing Pi health and each app's last run (FastAPI in Docker)
 aws/              IAM policy templates
 pi-setup.md       setting up or rebuilding the Pi
 ROADMAP.md        what's next
@@ -46,5 +50,5 @@ ROADMAP.md        what's next
 An app repo needs a `Dockerfile`, a `.env.example`, and must run on ARM64. To host it:
 
 1. Clone it to `/srv/apps/<app>` and create its `.env`.
-2. Open a PR here that adds its line to `pi.crontab` (if it runs on a schedule) and any IAM policy to `aws/`.
+2. Open a PR here that adds its line to `pi.crontab` (if it runs on a schedule, through `monitoring/run_app.py` so it shows on the dashboard) and any IAM policy to `aws/`.
 3. After merging: `git pull` in `/srv/homelab`, then `crontab /srv/homelab/pi.crontab`.

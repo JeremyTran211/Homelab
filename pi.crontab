@@ -13,5 +13,7 @@ PATH=/usr/local/bin:/usr/bin:/bin
 
 # --- Apps (each is its own repo, cloned to /srv/apps/<app>) ---
 
+# run_app.py records each run's times and exit code in metrics.db for the dashboard.
+
 # Every Wednesday at 9:01am
-1 9 * * 3 /srv/apps/scheduler-tdc/run.sh
+1 9 * * 3 python3 /srv/homelab/monitoring/run_app.py scheduler-tdc /srv/apps/scheduler-tdc/run.sh

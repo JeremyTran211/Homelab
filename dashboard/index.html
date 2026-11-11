@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>chocochip dashboard</title>
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f6f4;
+      --card: #ffffff;
+      --text: #1f2328;
+      --muted: #616a74;
+      --line: #dfe1e4;
+      --good: #17703a;
+      --warn: #955f00;
+      --bad: #b3261e;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #16181b;
+        --card: #1f2226;
+        --text: #eceef0;
+        --muted: #a0a8b1;
+        --line: #33373c;
+        --good: #5bc884;
+        --warn: #e5b04d;
+        --bad: #f28b82;
+      }
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0 auto;
+      max-width: 760px;
+      padding: 24px 16px;
+      background: var(--bg);
+      color: var(--text);
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    h1 { margin: 0; font-size: 1.5rem; }
+    h2 { margin: 32px 0 12px; font-size: 1.1rem; }
+    .muted { color: var(--muted); font-size: 0.875rem; }
+    .good { color: var(--good); }
+    .warn { color: var(--warn); }
+    .bad { color: var(--bad); }
+    .status { font-weight: 600; }
+    .tiles {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+      margin: 12px 0;
+    }
+    .tile, .table-wrap, .notice {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+    .tile { padding: 12px 16px; }
+    .tile strong { display: block; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+    .notice { padding: 12px 16px; margin: 12px 0; }
+    .notice:empty { display: none; }
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 10px 16px; text-align: left; white-space: nowrap; }
+    th { color: var(--muted); font-size: 0.875rem; font-weight: 500; }
+    tbody tr { border-top: 1px solid var(--line); }
+  </style>
+</head>
+<body>
+  <h1>chocochip</h1>
+  <p class="muted" id="updated" aria-live="polite">Loading…</p>
+  <div class="notice bad" id="error" role="alert"></div>
+
+  <h2>System health</h2>
+  <p><span class="status" id="health-status">…</span> <span class="muted" id="health-age"></span></p>
+  <div class="notice" id="health-warnings"></div>
+  <div class="tiles" id="tiles"></div>
+
+  <h2>Apps</h2>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr><th>App</th><th>Status</th><th>Last run</th><th>Duration</th><th>Exit code</th></tr>
+      </thead>
+      <tbody id="apps"></tbody>
+    </table>
+  </div>
+
+  <script>
+    const REFRESH_MS = 30000;
+
+    const HEALTH_LABELS = {
+      OK: ["OK", "good"],
+      WARNING: ["Warning", "warn"],
+      STALE: ["Out of date: metrics have stopped updating", "bad"],
+      NO_DATA: ["No metrics recorded yet", "warn"],
+    };
+    const RUN_LABELS = {
+      SUCCESS: ["Success", "good"],
+      FAILED: ["Failed", "bad"],
+      UNFINISHED: ["Running or interrupted", "warn"],
+    };
+
+    function formatDuration(seconds) {
+      if (seconds === null) return "–";
+      if (seconds < 60) return `${seconds}s`;
+      if (seconds < 3600) return `${Math.floor(seconds / 60)}m ${seconds % 60}s`;
+      if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ${Math.floor(seconds / 60) % 60}m`;
+      return `${Math.floor(seconds / 86400)}d ${Math.floor(seconds / 3600) % 24}h`;
+    }
+
+    function setStatus(element, [text, tone]) {
+      element.textContent = text;
+      element.className = `status ${tone}`;
+    }
+
+    function renderHealth(health) {
+      setStatus(document.getElementById("health-status"), HEALTH_LABELS[health.status]);
+      document.getElementById("health-age").textContent =
+        health.age_seconds === null ? "" : `Last reading ${formatDuration(health.age_seconds)} ago`;
+      document.getElementById("health-warnings").textContent = health.warnings.join(" · ");
+
+      const r = health.reading;
+      const tiles = !r ? [] : [
+        ["CPU", `${r.cpu_percent.toFixed(1)}%`],
+        ["Memory", `${r.mem_percent.toFixed(1)}%`],
+        ["Disk", `${r.disk_percent.toFixed(1)}%`],
+        ["Temperature", r.temp_c === null ? "N/A" : `${r.temp_c.toFixed(1)}°C`],
+      ];
+      document.getElementById("tiles").replaceChildren(...tiles.map(([label, value]) => {
+        const tile = document.createElement("div");
+        tile.className = "tile";
+        const number = document.createElement("strong");
+        number.textContent = value;
+        const name = document.createElement("span");
+        name.className = "muted";
+        name.textContent = label;
+        tile.append(number, name);
+        return tile;
+      }));
+    }
+
+    function renderApps(apps) {
+      const body = document.getElementById("apps");
+      if (apps.length === 0) {
+        const cell = document.createElement("td");
+        cell.colSpan = 5;
+        cell.className = "muted";
+        cell.textContent = "No runs recorded yet";
+        const row = document.createElement("tr");
+        row.append(cell);
+        body.replaceChildren(row);
+        return;
+      }
+      body.replaceChildren(...apps.map((run) => {
+        const row = document.createElement("tr");
+        const status = document.createElement("span");
+        setStatus(status, RUN_LABELS[run.status]);
+        // Times are stored in UTC; the browser shows them in your own time zone
+        const cells = [
+          run.app,
+          status,
+          new Date(run.started_at).toLocaleString(),
+          formatDuration(run.duration_seconds),
+          run.exit_code === null ? "–" : String(run.exit_code),
+        ];
+        row.append(...cells.map((content) => {
+          const cell = document.createElement("td");
+          cell.append(content);
+          return cell;
+        }));
+        return row;
+      }));
+    }
+
+    async function getJson(url) {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`${url} returned ${response.status}`);
+      return response.json();
+    }
+
+    async function refresh() {
+      const error = document.getElementById("error");
+      const updated = document.getElementById("updated");
+      try {
+        const [health, apps] = await Promise.all([getJson("/api/health"), getJson("/api/apps")]);
+        renderHealth(health);
+        renderApps(apps);
+        error.textContent = "";
+        updated.textContent = `Updated ${new Date().toLocaleTimeString()}, refreshes every 30 seconds`;
+      } catch (e) {
+        // Keep the last values on screen, but say clearly that they may be old
+        error.textContent = `Can't reach the dashboard server, so this page may be out of date (${e.message}).`;
+      }
+    }
+
+    refresh();
+    setInterval(refresh, REFRESH_MS);
+  </script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+# Ignore everything, then allow only what the dashboard image needs,
+# so the database, logs and any secrets can't end up in an image
+*
+!dashboard/
+!monitoring/health_check.py

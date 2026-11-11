@@ -1,0 +1,14 @@
+# Start or update from this folder: docker compose up -d --build
+services:
+  dashboard:
+    build:
+      context: ..
+      dockerfile: dashboard/Dockerfile
+    restart: unless-stopped   # keep it running, and bring it back after a reboot
+    ports:
+      - "8000:8000"           # home network only: never add a router port forward for this
+    volumes:
+      # The whole folder rather than just metrics.db: SQLite keeps a temporary journal file
+      # beside the database, and Docker would create a folder if the file didn't exist yet.
+      # :ro means read-only, so nothing in this container can change the data.
+      - ../monitoring:/data:ro
