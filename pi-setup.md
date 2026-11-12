@@ -102,6 +102,33 @@ Each problem is reported once, repeated daily while it lasts, and followed by a 
 note when it clears. Thresholds live in `health_check.py`; per-app rules are the `APPS`
 block at the top of `alerts.py`, including which exit codes count as normal.
 
+## 6. Metrics to CloudWatch
+
+Sends Pi health to AWS, so it's visible off-site and an alarm can notice if the Pi goes
+quiet. `alerts.py` can never do that: if the Pi dies, it dies with it.
+
+In the AWS console, create an identity for the Pi itself, separate from any app's:
+
+1. IAM → Policies → Create policy → JSON → paste `aws/pi-cloudwatch-policy.json`,
+   name it `homelab-pi-cloudwatch`
+2. IAM → Users → Create user → `homelab-pi`, attach that policy
+3. That user → Security credentials → Create access key → "Other"
+
+Then on the Pi:
+
+```bash
+aws configure --profile homelab           # the new key; region us-east-1
+cd /srv/homelab/monitoring
+.venv/bin/pip install -r requirements.txt
+.venv/bin/python ship_metrics.py --dry-run    # ✅ lists what it would send
+.venv/bin/python ship_metrics.py              # ✅ "Shipped N data points ..."
+```
+
+Confirm in the console: CloudWatch → Metrics → All metrics → **Homelab** → Host.
+
+It remembers how far it has got, so each run only sends readings it hasn't sent before,
+and a failed run is retried rather than lost.
+
 ## Updating
 
 ```bash

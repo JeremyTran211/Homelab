@@ -23,6 +23,7 @@ flowchart LR
     apps -->|"run results"| mon
     mon -->|"read-only"| dash
     mon -->|"problems, every 15 min"| discord
+    mon -->|"health metrics,<br/>own IAM user"| aws
     apps -->|"scoped IAM user per app"| aws
 ```
 
@@ -33,7 +34,7 @@ monitoring, alerts and a public entry point for hosted sites (see [ROADMAP.md](R
 
 ```
 pi.crontab        the Pi's cron jobs: monitoring + each app's schedule
-monitoring/       health metrics (CPU, RAM, disk, temp) into SQLite every 5 min, run_app.py to record app runs, alerts.py to report problems
+monitoring/       health metrics (CPU, RAM, disk, temp) into SQLite every 5 min, run_app.py to record app runs, alerts.py to report problems, ship_metrics.py to send them to CloudWatch
 .env.example      template for /srv/homelab/.env on the Pi (secrets stay off git)
 dashboard/        web page showing Pi health and each app's last run (FastAPI in Docker)
 aws/              IAM policy templates
