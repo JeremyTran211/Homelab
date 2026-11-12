@@ -129,6 +129,35 @@ Confirm in the console: CloudWatch → Metrics → All metrics → **Homelab** �
 It remembers how far it has got, so each run only sends readings it hasn't sent before,
 and a failed run is retried rather than lost.
 
+## 7. Alarm for the Pi going quiet
+
+`alerts.py` runs on the Pi, so it can't tell you the Pi has died — it dies too. This alarm
+lives in AWS and watches for the metrics *stopping*.
+
+Create it with your own AWS login, **not** the Pi's. `homelab-pi` can only write metrics,
+and it should stay that way: a machine that can delete its own alarm isn't being watched.
+
+1. SNS → Topics → Create topic → Standard → name it `homelab-alerts`
+2. That topic → Create subscription → Protocol **Email** → your address
+3. Click the confirmation link AWS emails you. Nothing is delivered until you do.
+4. Copy the topic ARN.
+
+Then from the repo root:
+
+```bash
+aws cloudwatch put-metric-alarm --cli-input-json file://aws/pi-quiet-alarm.json \
+  --alarm-actions "<topic ARN>" --ok-actions "<topic ARN>"
+```
+
+Passing the ARN here rather than editing the file keeps your AWS account ID out of git,
+the same reason `YOUR_BUCKET_NAME` is a placeholder in the S3 policy.
+
+Check CloudWatch → Alarms. It should settle on **OK** within about an hour.
+
+It fires after roughly 45 minutes of silence and emails again when metrics return. Confirm
+shipping is on cron first (`crontab -l`), or it will fire straight away — which is also a
+perfectly good way to see that it works.
+
 ## Updating
 
 ```bash

@@ -26,15 +26,16 @@ the commit history shows when each piece shipped.
 
 ## Phase 2: Cloud observability (hybrid)
 
-- [ ] Ship logs and/or custom metrics to CloudWatch, with a log group per service
-- [ ] Verify Pi logs appear in AWS
+- [x] Ship custom metrics to CloudWatch (app logs stay in S3, shipped by each app)
+- [x] Verify Pi metrics appear in AWS
 - [ ] Stretch: register the Pi with **SSM as a hybrid managed node**, or use **IAM Roles Anywhere**, to replace long-lived access keys
 
 ## Phase 3: Alerts
 
-- [ ] App problems: a scheduled app exited non-zero, or hasn't run successfully when it should have
-- [ ] Disk too full, CPU too high, Pi too hot (thresholds already in `health_check.py`)
-- [ ] Deliver to Discord, email or SNS
+- [x] App problems: a scheduled app exited non-zero, or hasn't run successfully when it should have
+- [x] Disk too full, CPU too high, Pi too hot (thresholds already in `health_check.py`)
+- [x] Deliver to Discord, email or SNS
+- [ ] A CloudWatch alarm for the Pi going quiet, which alerts.py can't report: it dies too
 
 ## Phase 4: Reverse proxy
 

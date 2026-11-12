@@ -1,0 +1,26 @@
+{
+  "AlarmName": "homelab-chocochip-quiet",
+  "AlarmDescription": "chocochip has stopped sending health metrics. The Pi may be off, offline, or ship_metrics.py may have stopped. alerts.py cannot report this, because it stops too.",
+  "Namespace": "Homelab",
+  "MetricName": "CPUPercent",
+  "Dimensions": [
+    {
+      "Name": "Host",
+      "Value": "chocochip"
+    }
+  ],
+  "Statistic": "SampleCount",
+  "Period": 900,
+  "EvaluationPeriods": 3,
+  "DatapointsToAlarm": 3,
+  "Threshold": 1,
+  "ComparisonOperator": "LessThanThreshold",
+  "TreatMissingData": "breaching",
+  "ActionsEnabled": true,
+  "AlarmActions": [
+    "YOUR_SNS_TOPIC_ARN"
+  ],
+  "OKActions": [
+    "YOUR_SNS_TOPIC_ARN"
+  ]
+}
