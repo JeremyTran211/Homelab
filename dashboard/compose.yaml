@@ -12,3 +12,11 @@ services:
       # beside the database, and Docker would create a folder if the file didn't exist yet.
       # :ro means read-only, so nothing in this container can change the data.
       - ../monitoring:/data:ro
+    networks:
+      homelab:
+        aliases:
+          - dashboard             # the name nginx proxies to
+
+networks:
+  homelab:
+    external: true                # created by hand: docker network create homelab

@@ -42,13 +42,6 @@ pi-setup.md       setting up or rebuilding the Pi
 ROADMAP.md        what's next
 ```
 
-## Rules
-
-- **No secrets in git.** `.env` files and AWS keys live only on the host. Policies use placeholders like `YOUR_BUCKET_NAME`.
-- **Changes go through a branch and a PR**, so the other person can review.
-- **One login per person** for the Pi, AWS and GitHub. No shared accounts.
-- **Nothing exposed directly to the internet** from the home network.
-
 ## Adding an app
 
 An app repo needs a `Dockerfile`, a `.env.example`, and must run on ARM64. To host it:

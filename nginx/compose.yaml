@@ -1,0 +1,24 @@
+# The one front door for everything on the Pi.
+# Start or update from this folder: docker compose up -d
+#
+# The shared network is created by hand, once per machine:
+#   docker network create homelab
+# It lives outside any compose file because the dashboard and future sites are
+# separate projects that all need to join it.
+services:
+  nginx:
+    # Official image, built for linux/arm64. "stable-alpine" tracks the stable
+    # branch; pin a version like nginx:1.28-alpine if you'd rather control upgrades.
+    image: nginx:stable-alpine
+    restart: unless-stopped       # survive reboots, same as the dashboard
+    ports:
+      - "80:80"                   # home network only: never port forward this
+    volumes:
+      # Nginx reads every .conf in this folder, so a new site is a new file.
+      - ./conf.d:/etc/nginx/conf.d:ro
+    networks:
+      - homelab
+
+networks:
+  homelab:
+    external: true
