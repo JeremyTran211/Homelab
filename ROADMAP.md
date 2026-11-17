@@ -13,7 +13,7 @@ the commit history shows when each piece shipped.
 
 ## Phase 0: Clean start
 
-- [ ] Set up `/srv/homelab` and `/srv/apps/` on the Pi and switch cron over ([pi-setup.md](pi-setup.md))
+- [x] Set up `/srv/homelab` and `/srv/apps/` on the Pi and switch cron over ([pi-setup.md](pi-setup.md))
 - [ ] Collaborator access: GitHub collaborator + branch protection on `main` (PR review required),
       a separate Linux user on the Pi, a separate IAM user in AWS (no shared logins)
 - [ ] Pi permissions: `homelab` group for `/srv/homelab`; app folders stay owner-only.
@@ -35,7 +35,7 @@ the commit history shows when each piece shipped.
 - [x] App problems: a scheduled app exited non-zero, or hasn't run successfully when it should have
 - [x] Disk too full, CPU too high, Pi too hot (thresholds already in `health_check.py`)
 - [x] Deliver to Discord, email or SNS
-- [ ] A CloudWatch alarm for the Pi going quiet, which alerts.py can't report: it dies too
+- [x] A CloudWatch alarm for the Pi going quiet, which alerts.py can't report: it dies too
 
 ## Phase 4: Reverse proxy
 
